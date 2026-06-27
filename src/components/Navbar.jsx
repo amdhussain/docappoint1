@@ -57,8 +57,8 @@ export default function Navbar() {
             {user ? (
               <div className="flex items-center gap-3">
                 <div className="flex items-center gap-2 bg-gray-50 rounded-full px-3 py-1.5 border border-gray-200">
-                  {user.image ? (
-                    <img src={user.image} alt="" className="w-7 h-7 rounded-full object-cover" />
+                  {user.photo ? (
+                    <img src={user.photo} alt="" className="w-7 h-7 rounded-full object-cover" />
                   ) : (
                     <FaUserCircle className="text-primary" size={22} />
                   )}

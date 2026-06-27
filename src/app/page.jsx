@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import {
   FaUserMd,
@@ -84,33 +84,33 @@ const specialties = [
 ];
 
 export default function Home() {
+  const [formData, setFormData] = useState({ name: '', email: '', phone: '', message: '' });
+  const [submitting, setSubmitting] = useState(false);
+
   useEffect(() => {
     document.title = 'DocAppoint - Book Appointments with Top Doctors';
   }, []);
 
-  const [form, setForm] = useState({ name: '', email: '', phone: '', message: '' });
-  const [loading, setLoading] = useState(false);
-
   const handleChange = (e) => {
-    setForm({ ...form, [e.target.name]: e.target.value });
+    setFormData({ ...formData, [e.target.type === 'tel' ? 'phone' : e.target.name || e.target.type]: e.target.value });
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setLoading(true);
+    setSubmitting(true);
     try {
-      const res = await fetch('/api/contact', {
+      const res = await fetch('http://localhost:5000/api/contact', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(form),
+        body: JSON.stringify(formData),
       });
-      if (res.ok) {
-        setForm({ name: '', email: '', phone: '', message: '' });
-      }
+      if (!res.ok) throw new Error('Failed to send message');
+      setFormData({ name: '', email: '', phone: '', message: '' });
+      alert('Message sent successfully!');
     } catch (err) {
-      console.error('Failed to send message', err);
+      alert(err.message);
     } finally {
-      setLoading(false);
+      setSubmitting(false);
     }
   };
 
@@ -420,11 +420,11 @@ export default function Home() {
             <div className="bg-[#F8FAFC] rounded-2xl p-8 border border-gray-100">
               <h3 className="text-xl font-semibold text-slateDark mb-6">Send us a Message</h3>
               <form onSubmit={handleSubmit} className="space-y-5">
-                <input type="text" name="name" value={form.name} onChange={handleChange} placeholder="Your Name" className="w-full px-5 py-3.5 border border-gray-200 rounded-xl bg-white focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all duration-200 text-sm" required />
-                <input type="email" name="email" value={form.email} onChange={handleChange} placeholder="Email Address" className="w-full px-5 py-3.5 border border-gray-200 rounded-xl bg-white focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all duration-200 text-sm" required />
-                <input type="tel" name="phone" value={form.phone} onChange={handleChange} placeholder="Phone Number" className="w-full px-5 py-3.5 border border-gray-200 rounded-xl bg-white focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all duration-200 text-sm" required />
-                <textarea rows={4} name="message" value={form.message} onChange={handleChange} placeholder="Your Message" className="w-full px-5 py-3.5 border border-gray-200 rounded-xl bg-white focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all duration-200 text-sm resize-none" required />
-                <button type="submit" disabled={loading} className="w-full bg-primary text-white px-6 py-3.5 rounded-xl font-semibold text-sm hover:bg-primaryDark transition-all duration-200 disabled:opacity-60 disabled:cursor-not-allowed">{loading ? 'Sending...' : 'Send Message'}</button>
+                <input type="text" name="name" placeholder="Your Name" value={formData.name} onChange={handleChange} className="w-full px-5 py-3.5 border border-gray-200 rounded-xl bg-white focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all duration-200 text-sm" required />
+                <input type="email" name="email" placeholder="Email Address" value={formData.email} onChange={handleChange} className="w-full px-5 py-3.5 border border-gray-200 rounded-xl bg-white focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all duration-200 text-sm" required />
+                <input type="tel" name="phone" placeholder="Phone Number" value={formData.phone} onChange={handleChange} className="w-full px-5 py-3.5 border border-gray-200 rounded-xl bg-white focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all duration-200 text-sm" required />
+                <textarea name="message" rows={4} placeholder="Your Message" value={formData.message} onChange={handleChange} className="w-full px-5 py-3.5 border border-gray-200 rounded-xl bg-white focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all duration-200 text-sm resize-none" required />
+                <button type="submit" disabled={submitting} className="w-full bg-primary text-white px-6 py-3.5 rounded-xl font-semibold text-sm hover:bg-primaryDark transition-all duration-200 disabled:opacity-50">{submitting ? 'Sending...' : 'Send Message'}</button>
               </form>
             </div>
 
