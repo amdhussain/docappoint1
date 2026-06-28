@@ -63,10 +63,13 @@ dotenv.config();
 
 const app = express();
 
-// Middleware
+// Middleware - dynamically allow any localhost origin in development
 app.use(
   cors({
-    origin: "http://localhost:3000",
+    origin: function (origin, callback) {
+      const allowed = !origin || /^http:\/\/localhost:\d+$/.test(origin);
+      callback(null, allowed);
+    },
     credentials: true,
   })
 );
@@ -105,7 +108,9 @@ app.use((err, req, res, next) => {
 });
 
 // Port
-const PORT = process.env.PORT || 5000;
+const PORT = process.env.PORT || 5001;
+
+let server;
 
 // MongoDB Connection
 mongoose
@@ -113,12 +118,37 @@ mongoose
   .then(() => {
     console.log("MongoDB Connected Successfully!");
 
-    app.listen(PORT, () => {
+    server = app.listen(PORT, () => {
       console.log(`Server running on port ${PORT}`);
     });
   })
   .catch((err) => {
     console.log("MongoDB Connection Failed:", err.message);
   });
+
+// Graceful shutdown — ensures port is released on restart/exit
+process.on("SIGINT", () => {
+  console.log("\nShutting down gracefully...");
+  if (server) {
+    server.close(() => {
+      console.log("HTTP server closed");
+      mongoose.connection.close(false).then(() => process.exit(0));
+    });
+  } else {
+    mongoose.connection.close(false).then(() => process.exit(0));
+  }
+});
+
+process.on("SIGTERM", () => {
+  console.log("\nSIGTERM received, shutting down...");
+  if (server) {
+    server.close(() => {
+      console.log("HTTP server closed");
+      mongoose.connection.close(false).then(() => process.exit(0));
+    });
+  } else {
+    mongoose.connection.close(false).then(() => process.exit(0));
+  }
+});
 
 
