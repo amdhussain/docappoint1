@@ -129,9 +129,9 @@
 
 import { NextResponse } from 'next/server';
 
-// const BACKEND_URL = 'http://localhost:5000/api/auth';
+const BACKEND_URL = 'http://localhost:5000/api/auth';
 
-const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL;
+// const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL;
 
 // ১. ইউজার রেজিস্ট্রেশন এবং লগইনের জন্য POST মেথড
 export async function POST(request) {

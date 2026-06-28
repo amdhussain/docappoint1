@@ -1,17 +1,4 @@
 {
-<<<<<<< HEAD
-  "name": "docappoint1",
-  "version": "1.0.0",
-  "description": "",
-  "main": "index.js",
-  "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
-  },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
-  "type": "commonjs"
-=======
   "name": "docappoint-frontend",
   "version": "1.0.0",
   "private": true,
@@ -32,9 +19,8 @@
     "react-icons": "^4.12.0"
   },
   "devDependencies": {
-    "autoprefixer": "^10.4.16",
+    "autoprefixer": "^10.4.27",
     "postcss": "^8.4.32",
     "tailwindcss": "^3.3.6"
   }
->>>>>>> dfbbc072350029677ffc5cf805e763cde419f218
 }

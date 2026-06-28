@@ -14,6 +14,18 @@ const nextConfig = {
       },
     ],
   },
+  async rewrites() {
+    return [
+      {
+        source: '/api/auth',
+        destination: 'http://localhost:5000/api/auth',
+      },
+      {
+        source: '/api/:slug*',
+        destination: 'http://localhost:5000/api/:slug*',
+      },
+    ];
+  },
 };
 
 module.exports = nextConfig;
