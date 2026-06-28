@@ -1,2 +1,18 @@
 MongoDB Connected Successfully!
 Server running on port 5000
+REGISTER BODY: {
+  name: 'Md. Hussain Ahmed',
+  email: 'kolil00@gmail.com',
+  password: 'Kolil123',
+  photo: ''
+}
+USER CREATED: {
+  name: 'Md. Hussain Ahmed',
+  email: 'kolil00@gmail.com',
+  password: '$2a$10$0tL3CcUqIIq6KFJIIegghuOzBWdCH6E2Ln1mOb7gnhC/p5MK72NvC',
+  photo: '',
+  _id: new ObjectId('6a40c51fcb2bb96387335bb8'),
+  createdAt: 2026-06-28T06:54:23.847Z,
+  updatedAt: 2026-06-28T06:54:23.847Z,
+  __v: 0
+}

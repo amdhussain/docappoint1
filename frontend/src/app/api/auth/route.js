@@ -1,7 +1,7 @@
  
 import { NextResponse } from 'next/server';
 
-const BACKEND_URL = 'http://localhost:5000/api/auth';
+const BACKEND_URL = 'http://localhost:5001/api/auth';
 
 // const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL;
 
