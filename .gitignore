@@ -1,4 +1,21 @@
+# node_modules
+# .next
+# .env.local
+# .DS_Store
+
+
+
+
+# dependencies
 node_modules
+
+# build output
 .next
-.env.local
+dist
+
+# environment variables
+.env*.local
+.env
+
+# system files
 .DS_Store

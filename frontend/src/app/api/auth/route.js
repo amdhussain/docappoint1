@@ -1,11 +1,15 @@
  
 import { NextResponse } from 'next/server';
 
-const BACKEND_URL = 'http://localhost:5001/api/auth';
+// const BACKEND_URL = 'http://localhost:5001/api/auth';
 
-// const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL;
+// const BACKEND_URL = 'http://localhost:5001/api/auth';
 
-// ১. ইউজার রেজিস্ট্রেশন এবং লগইনের জন্য POST মেথড
+// route.js এ হার্ডকোড না করে এভাবে লিখুন:
+const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:5001/api/auth';
+ 
+
+ 
 export async function POST(request) {
   try {
     const { searchParams } = new URL(request.url);
@@ -49,7 +53,7 @@ export async function POST(request) {
   }
 }
 
-// ২. কারেন্ট ইউজার ডাটা (Profile) চেক করার জন্য একটি মাত্র GET মেথড
+ 
 export async function GET(request) {
   try {
     const authHeader = request.headers.get('authorization');
