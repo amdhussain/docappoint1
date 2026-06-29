@@ -1,10 +1,11 @@
-const mongoose = require('mongoose');
+const { MongoClient } = require('mongodb');
+const bcrypt = require('bcryptjs');
 const dotenv = require('dotenv');
-const User = require('../models/User');
-const Doctor = require('../models/Doctor');
-const Appointment = require('../models/Appointment');
 
 dotenv.config();
+
+const MONGO_URI = process.env.MONGO_URI;
+const DB_NAME = process.env.DB_NAME || 'docappoint2';
 
 const doctorsData = [
   {
@@ -226,33 +227,48 @@ const doctorsData = [
 ];
 
 const seedDB = async () => {
+  let client;
+
   try {
-    await mongoose.connect(process.env.MONGO_URI);
+    client = new MongoClient(MONGO_URI, {
+      serverSelectionTimeoutMS: 10000,
+    });
+
+    await client.connect();
+    const db = client.db(DB_NAME);
     console.log('MongoDB connected for seeding');
 
-    await User.deleteMany({});
-    await Doctor.deleteMany({});
-    await Appointment.deleteMany({});
+    await db.collection('users').deleteMany({});
+    await db.collection('doctors').deleteMany({});
+    await db.collection('appointments').deleteMany({});
     console.log('Collections cleared');
 
-    const patientUser = await User.create({
+    const salt = await bcrypt.genSalt(10);
+
+    const patientResult = await db.collection('users').insertOne({
       name: 'Test Patient',
       email: 'patient@test.com',
-      password: 'Test123',
+      password: await bcrypt.hash('Test123', salt),
+      photo: '',
       role: 'patient',
+      createdAt: new Date(),
     });
+    const patientUserId = patientResult.insertedId;
     console.log('Test patient user created');
 
-    const doctorUser = await User.create({
+    const doctorResult = await db.collection('users').insertOne({
       name: 'Test Doctor',
       email: 'doctor@test.com',
-      password: 'Test123',
+      password: await bcrypt.hash('Test123', salt),
+      photo: '',
       role: 'doctor',
+      createdAt: new Date(),
     });
     console.log('Test doctor user created');
 
-    const createdDoctors = await Doctor.insertMany(doctorsData);
-    console.log(`${createdDoctors.length} doctors created`);
+    const createdDoctors = await db.collection('doctors').insertMany(doctorsData);
+    const doctorIds = Object.values(createdDoctors.insertedIds);
+    console.log(`${doctorIds.length} doctors created`);
 
     const today = new Date();
     const tomorrow = new Date(today);
@@ -261,11 +277,11 @@ const seedDB = async () => {
     const nextWeek = new Date(today);
     nextWeek.setDate(nextWeek.getDate() + 7);
 
-    await Appointment.create([
+    await db.collection('appointments').insertMany([
       {
-        user: patientUser._id,
-        doctor: createdDoctors[0]._id,
-        doctorName: createdDoctors[0].name,
+        user: patientUserId,
+        doctor: doctorIds[0],
+        doctorName: doctorsData[0].name,
         patientName: 'Test Patient',
         patientEmail: 'patient@test.com',
         patientPhone: '9876543210',
@@ -273,11 +289,12 @@ const seedDB = async () => {
         appointmentTime: '10:00 AM',
         consultationType: 'in-clinic',
         status: 'scheduled',
+        createdAt: new Date(),
       },
       {
-        user: patientUser._id,
-        doctor: createdDoctors[3]._id,
-        doctorName: createdDoctors[3].name,
+        user: patientUserId,
+        doctor: doctorIds[3],
+        doctorName: doctorsData[3].name,
         patientName: 'Test Patient',
         patientEmail: 'patient@test.com',
         patientPhone: '9876543210',
@@ -285,6 +302,7 @@ const seedDB = async () => {
         appointmentTime: '2:30 PM',
         consultationType: 'video',
         status: 'scheduled',
+        createdAt: new Date(),
       },
     ]);
     console.log('2 sample appointments created');
@@ -293,7 +311,7 @@ const seedDB = async () => {
     console.log('Patient email: patient@test.com, Password: Test123');
     console.log('Doctor email: doctor@test.com, Password: Test123');
 
-    await mongoose.connection.close();
+    await client.close();
     console.log('MongoDB disconnected');
     process.exit(0);
   } catch (error) {

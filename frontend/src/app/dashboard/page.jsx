@@ -194,8 +194,14 @@ export default function MyBookings() {
       const res = await axios.get('/api/appointments', {
         headers: { Authorization: `Bearer ${token}` },
       });
-      setAppointments(Array.isArray(res.data) ? res.data : res.data.appointments || []);
+      console.log('API response status:', res.status);
+      console.log('API response data:', res.data);
+      const data = Array.isArray(res.data) ? res.data : res.data.appointments || [];
+      console.log('Parsed appointments count:', data.length);
+      if (data.length > 0) console.log('First appointment:', data[0]);
+      setAppointments(data);
     } catch (err) {
+      console.error('Fetch error:', err.response?.data || err.message);
       toast.error('Failed to load appointments');
     } finally {
       setLoading(false);

@@ -1,12 +1,9 @@
  
 import { NextResponse } from 'next/server';
 
-// const BACKEND_URL = 'http://localhost:5001/api/auth';
-
-// const BACKEND_URL = 'http://localhost:5001/api/auth';
-
-// route.js এ হার্ডকোড না করে এভাবে লিখুন:
-const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:5001/api/auth';
+ 
+const BASE_URL = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:5001';
+const BACKEND_URL = `${BASE_URL}/api/auth`;
  
 
  
@@ -42,7 +39,7 @@ export async function POST(request) {
   } catch (error) {
     const message =
       error.name === 'AbortError'
-        ? 'Backend server not responding (timeout). Make sure the backend is running on port 5000.'
+        ? 'Backend server not responding (timeout). Make sure the backend is running on port 5001.'
         : error.cause?.code === 'ECONNREFUSED'
         ? 'Cannot connect to backend server. Run the backend first: cd backend && npm run dev'
         : error.message;

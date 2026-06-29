@@ -1,7 +1,6 @@
 'use client';
 
 import { useState, useEffect, useMemo, useCallback } from 'react';
-import axios from 'axios';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/components/AuthProvider';
 import { HiOutlineSearch } from 'react-icons/hi';
@@ -120,20 +119,40 @@ export default function AppointmentsPage() {
   }, []);
 
   useEffect(() => {
-    const fetchDoctors = async () => {
+    let cancelled = false;
+
+    const fetchData = async () => {
       try {
         setLoading(true);
         setError(null);
-        const res = await axios.get('/api/doctors');
-        const data = Array.isArray(res.data) ? res.data : res.data.doctors || res.data.data || [];
-        setDoctors(data);
+
+        const res = await fetch('/data.json');
+        if (!res.ok) {
+          throw new Error(`Failed to load data (${res.status})`);
+        }
+
+        const json = await res.json();
+        const data = Array.isArray(json) ? json : json.doctors || [];
+
+        if (!cancelled) {
+          setDoctors(data);
+        }
       } catch (err) {
-        setError(err.response?.data?.message || err.message || 'Failed to load doctors');
+        if (!cancelled) {
+          setError(err.message || 'Failed to load doctors');
+        }
       } finally {
-        setLoading(false);
+        if (!cancelled) {
+          setLoading(false);
+        }
       }
     };
-    fetchDoctors();
+
+    fetchData();
+
+    return () => {
+      cancelled = true;
+    };
   }, []);
 
   const filteredAndSorted = useMemo(() => {
@@ -220,7 +239,7 @@ export default function AppointmentsPage() {
           </div>
         )}
 
-        {error && !loading && (
+        {!loading && error && (
           <div className="flex flex-col items-center justify-center py-20">
             <div className="bg-red-50 border border-red-200 rounded-2xl p-8 text-center max-w-md">
               <p className="text-red-600 font-medium">Failed to load appointments</p>

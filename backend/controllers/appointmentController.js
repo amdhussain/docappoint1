@@ -1,4 +1,5 @@
-const Appointment = require('../models/appointmentModel');
+const { getDb } = require('../config/db');
+const { ObjectId } = require('mongodb');
 
 const createAppointment = async (req, res) => {
   try {
@@ -8,17 +9,21 @@ const createAppointment = async (req, res) => {
       return res.status(400).json({ message: 'Please provide doctorName, patientName, appointmentDate and appointmentTime' });
     }
 
-    const appointment = await Appointment.create({
+    const db = getDb();
+    console.log('CREATE: userEmail from token:', req.user.email);
+    const appointment = {
       userEmail: req.user.email,
       doctorName,
       patientName,
-      gender,
-      phone,
-      appointmentDate,
+      gender: gender || '',
+      phone: phone || '',
+      appointmentDate: new Date(appointmentDate),
       appointmentTime,
-    });
+      createdAt: new Date(),
+    };
 
-    res.status(201).json(appointment);
+    const result = await db.collection('appointments').insertOne(appointment);
+    res.status(201).json({ _id: result.insertedId, ...appointment });
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
@@ -26,7 +31,25 @@ const createAppointment = async (req, res) => {
 
 const getMyAppointments = async (req, res) => {
   try {
-    const appointments = await Appointment.find({ userEmail: req.user.email }).sort({ createdAt: -1 });
+    const db = getDb();
+    const queryEmail = req.user.email;
+    console.log('GET: querying userEmail:', queryEmail);
+
+    const appointments = await db.collection('appointments')
+      .find({ userEmail: queryEmail })
+      .sort({ createdAt: -1 })
+      .toArray();
+
+    console.log('GET: appointments found:', appointments.length);
+
+    if (appointments.length === 0) {
+      const total = await db.collection('appointments').countDocuments();
+      const emails = await db.collection('appointments').distinct('userEmail');
+      console.log('GET: total appointments in collection:', total);
+      console.log('GET: distinct userEmail values in DB:', emails);
+      console.log('GET: does queryEmail exist in DB?', emails.includes(queryEmail));
+    }
+
     res.json(appointments);
   } catch (error) {
     res.status(500).json({ message: error.message });
@@ -35,7 +58,8 @@ const getMyAppointments = async (req, res) => {
 
 const updateAppointment = async (req, res) => {
   try {
-    const appointment = await Appointment.findById(req.params.id);
+    const db = getDb();
+    const appointment = await db.collection('appointments').findOne({ _id: new ObjectId(req.params.id) });
 
     if (!appointment) {
       return res.status(404).json({ message: 'Appointment not found' });
@@ -45,13 +69,19 @@ const updateAppointment = async (req, res) => {
       return res.status(403).json({ message: 'Not authorized to update this appointment' });
     }
 
-    if (req.body.patientName) appointment.patientName = req.body.patientName;
-    if (req.body.gender) appointment.gender = req.body.gender;
-    if (req.body.phone) appointment.phone = req.body.phone;
-    if (req.body.appointmentDate) appointment.appointmentDate = req.body.appointmentDate;
-    if (req.body.appointmentTime) appointment.appointmentTime = req.body.appointmentTime;
+    const updateData = {};
+    if (req.body.patientName) updateData.patientName = req.body.patientName;
+    if (req.body.gender) updateData.gender = req.body.gender;
+    if (req.body.phone) updateData.phone = req.body.phone;
+    if (req.body.appointmentDate) updateData.appointmentDate = new Date(req.body.appointmentDate);
+    if (req.body.appointmentTime) updateData.appointmentTime = req.body.appointmentTime;
 
-    const updated = await appointment.save();
+    await db.collection('appointments').updateOne(
+      { _id: new ObjectId(req.params.id) },
+      { $set: updateData }
+    );
+
+    const updated = await db.collection('appointments').findOne({ _id: new ObjectId(req.params.id) });
     res.json(updated);
   } catch (error) {
     res.status(500).json({ message: error.message });
@@ -60,7 +90,8 @@ const updateAppointment = async (req, res) => {
 
 const deleteAppointment = async (req, res) => {
   try {
-    const appointment = await Appointment.findById(req.params.id);
+    const db = getDb();
+    const appointment = await db.collection('appointments').findOne({ _id: new ObjectId(req.params.id) });
 
     if (!appointment) {
       return res.status(404).json({ message: 'Appointment not found' });
@@ -70,11 +101,22 @@ const deleteAppointment = async (req, res) => {
       return res.status(403).json({ message: 'Not authorized to delete this appointment' });
     }
 
-    await appointment.deleteOne();
+    await db.collection('appointments').deleteOne({ _id: new ObjectId(req.params.id) });
     res.json({ message: 'Appointment removed' });
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
 };
 
-module.exports = { createAppointment, getMyAppointments, updateAppointment, deleteAppointment };
+const getAllAppointments = async (req, res) => {
+  try {
+    const db = getDb();
+    const appointments = await db.collection('appointments').find().sort({ createdAt: -1 }).toArray();
+    console.log('Appointments found:', appointments.length);
+    res.json(appointments);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+module.exports = { createAppointment, getMyAppointments, getAllAppointments, updateAppointment, deleteAppointment };

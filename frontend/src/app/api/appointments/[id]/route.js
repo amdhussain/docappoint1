@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 
-const BACKEND_URL = 'http://localhost:5000/api/appointments';
+const BACKEND_URL = `${process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:5001'}/api/appointments`;
 
 async function fetchWithFallback(url, options) {
   const controller = new AbortController();

@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 
-const BACKEND_URL = 'http://localhost:5000/api/auth/profile';
+const BASE_URL = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:5001';
+const BACKEND_URL = `${BASE_URL}/api/auth/profile`;
 
 export async function PUT(request) {
   try {

@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 
-const BACKEND_URL = 'http://localhost:5000/api/doctors';
+const BACKEND_URL = `${process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:5001'}/api/doctors`;
 
 const mockDoctors = [
   { _id: 'doc1', name: 'Dr. Arjun Sharma', specialty: 'General Physician', qualifications: 'MBBS, MD', experience: 15, about: 'Experienced general physician with expertise in internal medicine and preventive healthcare.', languages: ['Hindi', 'English'], clinicName: 'Arjun Clinic', clinicAddress: '123 Linking Road, Bandra West', city: 'Mumbai', consultationFee: 500, videoFee: 300, rating: 4.5, reviewsCount: 3200, availableToday: true, gender: 'Male', isVerified: true, image: null, services: ['In-Clinic Visit', 'Prescription Refill', 'Health Checkup'] },

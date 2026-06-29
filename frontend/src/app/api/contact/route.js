@@ -1,40 +1,36 @@
 import { NextResponse } from 'next/server';
-import connectDB from '@/lib/mongoose';
-import mongoose from 'mongoose';
 
-const messageSchema = new mongoose.Schema({
-  name: { type: String, required: true, trim: true },
-  email: { type: String, required: true, trim: true, lowercase: true },
-  phone: { type: String, required: true, trim: true },
-  message: { type: String, required: true, trim: true },
-}, { timestamps: true });
-
-const Message = mongoose.models.Message || mongoose.model('Message', messageSchema);
+const BASE_URL = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:5001';
+const BACKEND_URL = `${BASE_URL}/api/contact`;
 
 export async function POST(request) {
   try {
     const body = await request.json();
-    const { name, email, phone, message } = body;
 
-    if (!name || !email || !phone || !message) {
-      return NextResponse.json(
-        { success: false, message: 'All fields are required' },
-        { status: 400 }
-      );
-    }
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 10000);
 
-    await connectDB();
+    const res = await fetch(BACKEND_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body),
+      signal: controller.signal,
+    });
 
-    await Message.create({ name, email, phone, message });
+    clearTimeout(timeoutId);
 
-    return NextResponse.json(
-      { success: true, message: 'Message sent successfully' },
-      { status: 201 }
-    );
+    const data = await res.json();
+    return NextResponse.json(data, { status: res.status });
   } catch (error) {
+    const message =
+      error.name === 'AbortError'
+        ? 'Backend server not responding (timeout).'
+        : error.cause?.code === 'ECONNREFUSED'
+        ? 'Cannot connect to backend server.'
+        : error.message;
     return NextResponse.json(
-      { success: false, message: 'Internal server error' },
-      { status: 500 }
+      { success: false, message },
+      { status: 503 }
     );
   }
 }

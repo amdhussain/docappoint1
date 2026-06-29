@@ -1,59 +1,45 @@
-// const mongoose = require('mongoose');
+const { MongoClient } = require('mongodb');
 
-// let isConnected = false;
+let client = null;
+let db = null;
 
-// const connectDB = async () => {
-//   if (isConnected) return;
-//   try {
-//     const conn = await mongoose.connect(process.env.MONGO_URI, {
-//       serverSelectionTimeoutMS: 10000,
-//     });
-//     isConnected = true;
-//     console.log(`MongoDB Connected: ${conn.connection.host}`);
-//   } catch (error) {
-//     console.error(`MongoDB connection error: ${error.message}`);
-//     console.error('Server will start but database features will be unavailable');
-//     isConnected = false;
-//   }
-// };
-
-// const getConnectionStatus = () => isConnected;
-
-// module.exports = connectDB;
-// module.exports.getConnectionStatus = getConnectionStatus;
-
-
-
-
-const mongoose = require("mongoose");
-
-let isConnected = false;
-
-const connectDB = async () => {
-  if (isConnected) {
-    console.log("MongoDB already connected");
-    return;
+async function connectDB() {
+  if (db) {
+    console.log('MongoDB already connected');
+    return db;
   }
 
-  try {
-    const conn = await mongoose.connect(process.env.MONGO_URI, {
-      serverSelectionTimeoutMS: 10000,
-    });
+  const MONGO_URI = process.env.MONGO_URI;
+  const DB_NAME = process.env.DB_NAME || 'docappoint2';
 
-    isConnected = true;
-
-    console.log(`MongoDB Connected: ${conn.connection.host}`);
-  } catch (error) {
-    console.error(`MongoDB connection error: ${error.message}`);
-    console.error("Server will start but database features will be unavailable");
-
-    isConnected = false;
-    throw error; // 🔥 added (important for debugging)
+  if (!MONGO_URI) {
+    throw new Error('MONGO_URI is not defined in environment variables');
   }
-};
 
-// status checker
-const getConnectionStatus = () => isConnected;
+  client = new MongoClient(MONGO_URI, {
+    serverSelectionTimeoutMS: 10000,
+  });
 
-module.exports = connectDB;
-module.exports.getConnectionStatus = getConnectionStatus;
+  await client.connect();
+  db = client.db(DB_NAME);
+  console.log(`MongoDB connected: ${DB_NAME}`);
+  return db;
+}
+
+function getDb() {
+  if (!db) {
+    throw new Error('Database not initialized. Call connectDB() first.');
+  }
+  return db;
+}
+
+async function closeDB() {
+  if (client) {
+    await client.close();
+    client = null;
+    db = null;
+    console.log('MongoDB disconnected');
+  }
+}
+
+module.exports = { connectDB, getDb, closeDB };

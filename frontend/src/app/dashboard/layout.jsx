@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import { useAuth } from '@/components/AuthProvider';
 import { useRouter, usePathname } from 'next/navigation';
 import Link from 'next/link';
-import { HiOutlineMenuAlt3, HiCalendar, HiUser, HiLogout } from 'react-icons/hi';
+import { HiOutlineMenuAlt3, HiCalendar, HiUser, HiLogout, HiMail } from 'react-icons/hi';
 
 export default function DashboardLayout({ children }) {
   const { user, loading, logout } = useAuth();
@@ -32,6 +32,7 @@ export default function DashboardLayout({ children }) {
 
   const navItems = [
     { href: '/dashboard', label: 'My Bookings', icon: HiCalendar },
+    { href: '/dashboard/messages', label: 'Messages', icon: HiMail },
     { href: '/dashboard/profile', label: 'My Profile', icon: HiUser },
   ];
 
